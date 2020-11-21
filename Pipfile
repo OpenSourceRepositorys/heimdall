@@ -1,0 +1,20 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+fastapi = "*"
+uvicorn = "*"
+pyjwt = "*"
+peewee = "*"
+psycopg2 = "*"
+argon2-cffi = "*"
+jwcrypto = "*"
+redis = "*"
+shortuuid = "*"
+
+[requires]
+python_version = "3.8"
