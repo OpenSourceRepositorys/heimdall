@@ -14,7 +14,7 @@ class DatabaseService:
             self.db_name = 'heimdall'
             self.db_user = 'postgres'
             self.db_password = 'ag.password'
-            self.db_host = 'localhost'
+            self.db_host = 'db'
             self.db_port = '5432'
             self.driver_configured = True
 

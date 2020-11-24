@@ -1,5 +1,5 @@
 from peewee import *
-from dbModels.BaseModel import BaseModel
+from models.BaseModel import BaseModel
 
 
 class Subscriber(BaseModel):

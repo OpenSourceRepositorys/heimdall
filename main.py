@@ -9,14 +9,14 @@ from peewee import DoesNotExist
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 
-from dbModels.User import User
-from dbModels.Subscriber import Subscriber
-from requestModels.AuthRequest import AuthRequest
-from requestModels.UserRegisterRequest import UserRegisterRequest
+from models.User import User
+from models.Subscriber import Subscriber
+from api_requests.AuthRequest import AuthRequest
+from api_requests.UserRegisterRequest import UserRegisterRequest
 
 app = FastAPI()
 ph = PasswordHasher()
-r = redis.Redis(host='localhost', port=6379)
+r = redis.Redis(host='redis', port=6379)
 
 
 @app.post('/auth/login/')
@@ -25,7 +25,7 @@ async def auth(request: AuthRequest):
         user = User().get(username=request.username)
         ph.verify(user.password, request.password)
     except DoesNotExist:
-        return {'status': 401}
+        return {'status': 404}
     except VerifyMismatchError:
         return {'status': 401}
 
@@ -34,7 +34,7 @@ async def auth(request: AuthRequest):
 
     # Token to enclosure the payload
     token = jwt.JWT(header={'alg': 'HS256'},
-                    claims={'for': user.get_id(),
+                    claims={'for': str(user.get_id()),
                             'created': datetime.now().isoformat()})
     token.make_signed_token(key)
 
@@ -49,6 +49,7 @@ async def auth(request: AuthRequest):
     return encrypted_token.serialize()
 
 
+# TODO: Check if signature can be manipulated
 @app.get('/auth/validate/')
 async def validate(token: str):
     redis_query = r.get(token)
@@ -63,13 +64,39 @@ async def validate(token: str):
     encrypted_token = jwt.JWT(key=key, jwt=token)
     signed_token = jwt.JWT(key=key, jwt=encrypted_token.claims)
 
-    return signed_token.claims
+    return {'status': 200, 'user': json.loads(signed_token.claims)}
+
+
+@app.get('/auth/user-details/')
+async def user_details(token: str):
+    redis_query = r.get(token)
+
+    # Tokens are stored only in Redis, cuz its fast af and persistence is overrated
+    if not redis_query:
+        return {'status': 404}
+
+    k = json.loads(redis_query)
+
+    key = jwk.JWK(**k)
+    encrypted_token = jwt.JWT(key=key, jwt=token)
+    signed_token = jwt.JWT(key=key, jwt=encrypted_token.claims)
+    token_content = json.loads(signed_token.claims)
+    if 'for' in token_content.keys():
+        try:
+            user = User().get(id=token_content['for'])
+        except DoesNotExist:
+            return {'status': 404}
+
+        return {'status': 200,
+                'user': {**token_content, 'username': user.username}
+                }
+    return {'status': 500}
 
 
 # How is this even secure
 # Anyone with subscriber key can do stuff
 # Registration service?
-@app.post('/register-user')
+@app.post('/auth/register-user/')
 async def register_user(request: UserRegisterRequest):
     try:
         subscriber = Subscriber().get(subscriber_key=request.subscriber_key)

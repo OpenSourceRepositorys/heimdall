@@ -1,7 +1,8 @@
+import sys
 from datetime import datetime
 
-from dbModels.Subscriber import Subscriber
-from dbModels.User import User
+from models.Subscriber import Subscriber
+from models.User import User
 from services.DatabaseService import DatabaseService
 
 db = DatabaseService().get_db()
@@ -9,6 +10,7 @@ db = DatabaseService().get_db()
 
 def prepare_db():
     db.create_tables([User, Subscriber])
+    return True
 
 
 def load_subscriber():
@@ -19,3 +21,5 @@ def load_subscriber():
 
 print(prepare_db())
 print(load_subscriber())
+sys.exit(0)
+
