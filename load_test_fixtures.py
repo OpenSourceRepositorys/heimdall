@@ -1,5 +1,8 @@
 import sys
 from datetime import datetime
+import uuid
+
+from argon2 import PasswordHasher
 
 from models.Subscriber import Subscriber
 from models.User import User
@@ -20,8 +23,9 @@ def load_subscriber():
 
 
 def create_default_user():
+    ph = PasswordHasher()
     default_subscriber = Subscriber.get(subscriber_key='Ds4GlQNozwQHaHBVFHXhlrZABuLHE2CXOl81HUyf2RqMH08j8mbcYofJfQWDT3If')
-    return User.create(username='tester', password='WsQ4562+', email='email@example.com',
+    return User.create(id=uuid.uuid4(), username='tester', password=ph.hash('WsQ4562+'), email='email@example.com',
                        registered_by=default_subscriber, active=True, created=datetime.now())
 
 

@@ -1,7 +1,6 @@
 import json
 import redis
 import uuid
-
 from datetime import datetime
 from jwcrypto import jwt, jwk
 from fastapi import FastAPI
@@ -14,6 +13,7 @@ from models.User import User
 from models.Subscriber import Subscriber
 from api_requests.AuthRequest import AuthRequest
 from api_requests.UserRegisterRequest import UserRegisterRequest
+
 
 app = FastAPI()
 ph = PasswordHasher()
@@ -38,7 +38,7 @@ app.add_middleware(
 )
 
 
-@app.post('/auth/login/')
+@app.post('/heimdall/api/auth/login/')
 async def auth(request: AuthRequest):
     try:
         user = User().get(username=request.username)
@@ -69,7 +69,7 @@ async def auth(request: AuthRequest):
 
 
 # TODO: Check if signature can be manipulated
-@app.get('/auth/validate/')
+@app.get('/heimdall/api/auth/validate/')
 async def validate(token: str):
     print('Trying to resolve token... ' + token)
     print(token)
@@ -90,7 +90,7 @@ async def validate(token: str):
     return {'status': 200, 'user': json.loads(signed_token.claims)}
 
 
-@app.get('/auth/user-details/')
+@app.get('/heimdall/api/auth/user-details/')
 async def user_details(token: str):
     redis_query = r.get(token)
 
@@ -116,7 +116,7 @@ async def user_details(token: str):
     return {'status': 500}
 
 
-@app.post('/auth/register-user/')
+@app.post('/heimdall/api/auth/register-user/')
 async def register_user(request: UserRegisterRequest):
     try:
         subscriber = Subscriber().get(subscriber_key=request.subscriber_key)
