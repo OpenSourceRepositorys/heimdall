@@ -5,6 +5,7 @@ import uuid
 from datetime import datetime
 from jwcrypto import jwt, jwk
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from peewee import DoesNotExist
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
@@ -17,6 +18,24 @@ from api_requests.UserRegisterRequest import UserRegisterRequest
 app = FastAPI()
 ph = PasswordHasher()
 r = redis.Redis(host='redis', port=6379)
+
+origins = [
+    "http://friday",
+    "http://friday:8000",
+    "http://friday:8001",
+    "http://localhost",
+    "http://localhost:8080",
+    "http://localhost:8081",
+    "http://localhost:4200",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.post('/auth/login/')
@@ -46,13 +65,17 @@ async def auth(request: AuthRequest):
     # Store secret for the token to Redis
     r.set(encrypted_token.serialize(), key.export())
 
-    return encrypted_token.serialize()
+    return {'status': 200, 'token': encrypted_token.serialize()}
 
 
 # TODO: Check if signature can be manipulated
 @app.get('/auth/validate/')
 async def validate(token: str):
+    print('Trying to resolve token... ' + token)
+    print(token)
+    print('Querying redis...')
     redis_query = r.get(token)
+    print(redis_query)
 
     # Tokens are stored only in Redis, cuz its fast af and persistence is overrated
     if not redis_query:
@@ -93,9 +116,6 @@ async def user_details(token: str):
     return {'status': 500}
 
 
-# How is this even secure
-# Anyone with subscriber key can do stuff
-# Registration service?
 @app.post('/auth/register-user/')
 async def register_user(request: UserRegisterRequest):
     try:

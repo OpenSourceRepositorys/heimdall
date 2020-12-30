@@ -19,7 +19,14 @@ def load_subscriber():
                              can_authenticate=True, can_register=True, active=True, created=datetime.now())
 
 
+def create_default_user():
+    default_subscriber = Subscriber.get(subscriber_key='Ds4GlQNozwQHaHBVFHXhlrZABuLHE2CXOl81HUyf2RqMH08j8mbcYofJfQWDT3If')
+    return User.create(username='tester', password='WsQ4562+', email='email@example.com',
+                       registered_by=default_subscriber, active=True, created=datetime.now())
+
+
 print(prepare_db())
 print(load_subscriber())
+print(create_default_user())
 sys.exit(0)
 
