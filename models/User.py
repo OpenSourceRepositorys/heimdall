@@ -1,6 +1,6 @@
 from peewee import *
-from dbModels.Subscriber import Subscriber
-from dbModels.UUIDModel import UUIDModel
+from models.Subscriber import Subscriber
+from models.UUIDModel import UUIDModel
 
 
 class User(UUIDModel):
