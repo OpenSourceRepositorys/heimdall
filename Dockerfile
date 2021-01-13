@@ -1,15 +1,11 @@
-FROM tiangolo/uvicorn-gunicorn-fastapi:latest
+FROM python:3.8-alpine
 
 COPY . /app
-
 WORKDIR /app
 
-RUN pip install pipenv
+RUN pip install pipenv fastapi uvicorn
 RUN pipenv install
-
-
-#RUN pipenv run python load_test_fixtures.py
+RUN chmod +x /app/entrypoint.sh
 
 EXPOSE 8000
-#CMD ["pipenv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 ENTRYPOINT ["./entrypoint.sh"]
